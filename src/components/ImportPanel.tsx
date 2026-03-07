@@ -1,0 +1,78 @@
+import { useState, type ChangeEvent } from "react";
+import type { ImportProgress } from "../features/drawings/drawings.types";
+
+interface ImportPanelProps {
+  importing: boolean;
+  progress: ImportProgress | null;
+  onImport: (files: File[], projectName: string) => Promise<void>;
+}
+
+export function ImportPanel({ importing, progress, onImport }: ImportPanelProps) {
+  const [projectName, setProjectName] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  async function handleFileInput(event: ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files;
+
+    if (!selected || selected.length === 0) {
+      return;
+    }
+
+    if (!projectName.trim()) {
+      setLocalError("Project name is required before importing.");
+      return;
+    }
+
+    setLocalError(null);
+    const files = Array.from(selected);
+    await onImport(files, projectName.trim());
+
+    event.target.value = "";
+  }
+
+  return (
+    <section className="rounded-2xl bg-white p-4 shadow-sm">
+      <h2 className="text-base font-semibold text-ink">Import Drawings</h2>
+      <p className="mt-1 text-sm text-slate-600">Upload one or more PDF files to extract and index locally.</p>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+        <label className="flex flex-col gap-1 text-sm text-slate-700">
+          Project name
+          <input
+            type="text"
+            value={projectName}
+            onChange={(event) => setProjectName(event.target.value)}
+            placeholder="Building A Renovation"
+            className="rounded-lg border border-slate-300 px-3 py-2"
+            disabled={importing}
+          />
+        </label>
+
+        <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60">
+          <input
+            type="file"
+            accept="application/pdf"
+            multiple
+            className="hidden"
+            onChange={handleFileInput}
+            disabled={importing}
+          />
+          {importing ? "Importing..." : "Select PDFs"}
+        </label>
+      </div>
+
+      {localError ? <p className="mt-3 text-sm text-rose-700">{localError}</p> : null}
+
+      {progress ? (
+        <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+          <p>
+            File {progress.currentFileIndex}/{progress.totalFiles}: <strong>{progress.fileName}</strong>
+          </p>
+          <p>
+            Extracting page {progress.currentPage}/{progress.totalPages}
+          </p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
