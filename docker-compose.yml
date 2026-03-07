@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-5174}:5173"
+    volumes:
+      - ./:/app
+      - app_tmp:/app/tmp
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      TMP_DIR: /app/tmp
+    command: sh -lc "bun install && bun run dev --host 0.0.0.0"
+
+volumes:
+  app_tmp:
