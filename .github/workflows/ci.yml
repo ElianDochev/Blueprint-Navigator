@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and start app container
+        run: docker compose up --build -d
+
+      - name: Run tests in container
+        run: docker compose exec -T app bun run test
+
+      - name: Build app in container
+        run: docker compose exec -T app bun run build
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v
