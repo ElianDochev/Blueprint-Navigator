@@ -22,7 +22,7 @@ export function SearchBar({ disabled, onSearch }: SearchBarProps) {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Try: electrical panel, open plan building b, A-102"
+          placeholder="Try: lobby-level, give me plan for file lobby-level, A-102"
           className="rounded-lg border border-slate-300 px-3 py-2"
           disabled={disabled}
         />

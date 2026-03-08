@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { parseVoiceCommand } from "../features/voice/voice.parser";
 
 describe("voice parser", () => {
+  it("parses open file command", () => {
+    const result = parseVoiceCommand("give me plan for file lobby-level");
+    expect(result.intent).toBe("open_file");
+    expect(result.fileName).toBe("lobby-level");
+  });
+
   it("parses open plan command", () => {
     const result = parseVoiceCommand("open plan for Building X");
     expect(result.intent).toBe("open_plan");

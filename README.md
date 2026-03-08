@@ -1,6 +1,6 @@
 # Blueprint Navigator
 
-Blueprint Navigator is a frontend-only proof-of-concept that imports construction drawing PDFs, extracts page text, builds a local search index, and opens the best matching page from typed or voice commands.
+Blueprint Navigator is a frontend-only proof-of-concept that imports construction drawing PDF/PNG files, extracts page text when available, assigns a plan type, builds a local search index, and opens the best matching page from typed or voice commands.
 
 ## MVP Constraints
 - No backend service

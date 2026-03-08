@@ -4,6 +4,17 @@ import { normalizeText } from "../../utils/text";
 export function parseVoiceCommand(rawText: string): VoiceCommand {
   const normalized = normalizeText(rawText);
 
+  const filePlanMatch = normalized.match(/(?:give me|open|show)\s+(?:the\s+)?plan\s+for\s+file\s+(?<file>[a-z0-9._ -]+)/i);
+  if (filePlanMatch?.groups?.file) {
+    const fileName = filePlanMatch.groups.file.trim();
+    return {
+      rawText,
+      intent: "open_file",
+      fileName,
+      query: fileName
+    };
+  }
+
   const openPlanMatch = normalized.match(/open\s+(?<discipline>[a-z]+\s+)?plan\s+for\s+building\s+(?<building>[a-z0-9-]+)/i);
   if (openPlanMatch?.groups?.building) {
     return {

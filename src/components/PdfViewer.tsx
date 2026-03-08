@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { StoredDrawingFile } from "../features/drawings/drawings.types";
-import { renderPdfPage } from "../features/pdf/pdf.viewer";
+import { renderImagePage, renderPdfPage } from "../features/pdf/pdf.viewer";
 
 interface PdfViewerProps {
   drawing: StoredDrawingFile | null;
@@ -15,8 +15,21 @@ export function PdfViewer({ drawing, pageNumber }: PdfViewerProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentPage(pageNumber || 1);
-  }, [pageNumber]);
+    if (!drawing) {
+      setCurrentPage(1);
+      setTotalPages(1);
+      return;
+    }
+
+    if (drawing.sourceKind === "image") {
+      setCurrentPage(1);
+      setTotalPages(1);
+      return;
+    }
+
+    setTotalPages(drawing.pageCount);
+    setCurrentPage(Math.min(Math.max(pageNumber || 1, 1), drawing.pageCount));
+  }, [drawing, pageNumber]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -29,13 +42,16 @@ export function PdfViewer({ drawing, pageNumber }: PdfViewerProps) {
     async function run() {
       try {
         setError(null);
-        const result = await renderPdfPage(drawing.pdfBlob, currentPage, zoom, canvas);
+        const result =
+          drawing.sourceKind === "pdf"
+            ? await renderPdfPage(drawing.fileBlob, currentPage, zoom, canvas)
+            : await renderImagePage(drawing.fileBlob, zoom, canvas);
         if (!cancelled) {
           setTotalPages(result.totalPages);
         }
       } catch (renderError) {
         if (!cancelled) {
-          setError(renderError instanceof Error ? renderError.message : "Failed to render PDF page.");
+          setError(renderError instanceof Error ? renderError.message : "Failed to render drawing.");
         }
       }
     }
@@ -50,7 +66,7 @@ export function PdfViewer({ drawing, pageNumber }: PdfViewerProps) {
   if (!drawing) {
     return (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-ink">PDF Viewer</h2>
+        <h2 className="text-base font-semibold text-ink">Drawing Viewer</h2>
         <p className="mt-2 text-sm text-slate-600">Select a search result to open a page.</p>
       </section>
     );
@@ -65,6 +81,7 @@ export function PdfViewer({ drawing, pageNumber }: PdfViewerProps) {
             type="button"
             onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
             className="rounded border border-slate-300 px-2 py-1"
+            disabled={drawing.sourceKind !== "pdf"}
           >
             Prev
           </button>
@@ -75,6 +92,7 @@ export function PdfViewer({ drawing, pageNumber }: PdfViewerProps) {
             type="button"
             onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
             className="rounded border border-slate-300 px-2 py-1"
+            disabled={drawing.sourceKind !== "pdf"}
           >
             Next
           </button>

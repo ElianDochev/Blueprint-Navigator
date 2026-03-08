@@ -1,4 +1,5 @@
 import type { DrawingFile } from "../features/drawings/drawings.types";
+import { planTypeLabel } from "../features/drawings/plan-type";
 
 interface RecentFilesPanelProps {
   files: DrawingFile[];
@@ -21,7 +22,9 @@ export function RecentFilesPanel({ files, onOpen }: RecentFilesPanelProps) {
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-left hover:border-accent/70"
               >
                 <p className="text-sm font-medium text-ink">{file.fileName}</p>
-                <p className="text-xs text-slate-600">{file.projectName} • {file.pageCount} pages</p>
+                <p className="text-xs text-slate-600">
+                  {file.projectName} • {file.pageCount} pages • {planTypeLabel(file.planType)}
+                </p>
               </button>
             </li>
           ))}

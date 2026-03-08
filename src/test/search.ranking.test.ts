@@ -6,6 +6,7 @@ describe("search ranking", () => {
     id: "page_1",
     fileId: "file_1",
     fileName: "BuildingB-Electrical.pdf",
+    tags: ["plan", "electrical"],
     pageNumber: 2,
     text: "Electrical panel schedule and riser details",
     normalizedText: "electrical panel schedule and riser details"

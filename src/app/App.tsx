@@ -8,7 +8,7 @@ import { StatusBanner } from "../components/StatusBanner";
 import { VoiceButton } from "../components/VoiceButton";
 import { importDrawingFiles } from "../features/drawings/drawings.service";
 import { loadDrawingsSnapshot } from "../features/drawings/drawings.store";
-import type { ImportProgress, SearchResult, StoredDrawingFile } from "../features/drawings/drawings.types";
+import type { ImportCandidate, ImportProgress, SearchResult, StoredDrawingFile } from "../features/drawings/drawings.types";
 import { SearchService } from "../features/search/search.service";
 import { saveRecentQuery } from "../features/storage/repositories";
 import { useVoiceAdapter } from "../features/voice/voice.adapter";
@@ -74,9 +74,9 @@ export function App() {
     searchService.hydrate(snapshot.drawings, snapshot.pages);
   }
 
-  async function handleImport(files: File[], projectName: string) {
+  async function handleImport(files: ImportCandidate[], projectName: string) {
     setImporting(true);
-    setStatus({ tone: "info", message: "Import started. Extracting page text..." });
+    setStatus({ tone: "info", message: "Import started..." });
     setProgress(null);
 
     try {
@@ -84,14 +84,14 @@ export function App() {
       await refreshSnapshot();
 
       if (report.importedFiles > 0 && report.skippedFiles.length === 0) {
-        setStatus({ tone: "success", message: `Imported ${report.importedFiles} PDF file(s) successfully.` });
+        setStatus({ tone: "success", message: `Imported ${report.importedFiles} file(s) successfully.` });
       } else if (report.importedFiles > 0) {
         setStatus({
           tone: "info",
           message: `Imported ${report.importedFiles} file(s). Skipped ${report.skippedFiles.length} invalid file(s).`
         });
       } else {
-        setStatus({ tone: "error", message: "No valid PDF files were imported." });
+        setStatus({ tone: "error", message: "No valid PDF/PNG files were imported." });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unexpected import error.";

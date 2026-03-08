@@ -1,10 +1,10 @@
 import { useState, type ChangeEvent } from "react";
-import type { ImportProgress } from "../features/drawings/drawings.types";
+import type { ImportCandidate, ImportProgress } from "../features/drawings/drawings.types";
 
 interface ImportPanelProps {
   importing: boolean;
   progress: ImportProgress | null;
-  onImport: (files: File[], projectName: string) => Promise<void>;
+  onImport: (files: ImportCandidate[], projectName: string) => Promise<void>;
 }
 
 export function ImportPanel({ importing, progress, onImport }: ImportPanelProps) {
@@ -24,7 +24,16 @@ export function ImportPanel({ importing, progress, onImport }: ImportPanelProps)
     }
 
     setLocalError(null);
-    const files = Array.from(selected);
+    const files = Array.from(selected).map((file) => {
+      const typedName = window.prompt(`How would you like to name "${file.name}"?`, file.name);
+      const displayName = typedName?.trim() || file.name;
+
+      return {
+        file,
+        displayName
+      };
+    });
+
     await onImport(files, projectName.trim());
 
     event.target.value = "";
@@ -33,7 +42,7 @@ export function ImportPanel({ importing, progress, onImport }: ImportPanelProps)
   return (
     <section className="rounded-2xl bg-white p-4 shadow-sm">
       <h2 className="text-base font-semibold text-ink">Import Drawings</h2>
-      <p className="mt-1 text-sm text-slate-600">Upload one or more PDF files to extract and index locally.</p>
+      <p className="mt-1 text-sm text-slate-600">Upload PDF/PNG files. You can rename each file before import.</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
         <label className="flex flex-col gap-1 text-sm text-slate-700">
@@ -51,13 +60,13 @@ export function ImportPanel({ importing, progress, onImport }: ImportPanelProps)
         <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60">
           <input
             type="file"
-            accept="application/pdf"
+            accept="application/pdf,image/png"
             multiple
             className="hidden"
             onChange={handleFileInput}
             disabled={importing}
           />
-          {importing ? "Importing..." : "Select PDFs"}
+          {importing ? "Importing..." : "Select PDF/PNGs"}
         </label>
       </div>
 

@@ -1,3 +1,16 @@
+export type DrawingSourceKind = "pdf" | "image";
+
+export type PlanType =
+  | "architectural"
+  | "electrical"
+  | "mechanical"
+  | "plumbing"
+  | "structural"
+  | "civil"
+  | "fire_protection"
+  | "landscape"
+  | "unknown";
+
 export interface DrawingFile {
   id: string;
   projectName: string;
@@ -5,11 +18,14 @@ export interface DrawingFile {
   fileHash: string;
   importedAt: string;
   pageCount: number;
+  sourceKind: DrawingSourceKind;
+  mimeType: string;
+  planType: PlanType;
   tags?: string[];
 }
 
 export interface StoredDrawingFile extends DrawingFile {
-  pdfBlob: Blob;
+  fileBlob: Blob;
 }
 
 export interface DrawingPage {
@@ -30,9 +46,10 @@ export interface SearchResult {
 
 export interface VoiceCommand {
   rawText: string;
-  intent: "open_plan" | "find_sheet" | "search_text" | "unknown";
+  intent: "open_plan" | "open_file" | "find_sheet" | "search_text" | "unknown";
   building?: string;
   discipline?: string;
+  fileName?: string;
   sheet?: string;
   query?: string;
 }
@@ -43,4 +60,9 @@ export interface ImportProgress {
   totalFiles: number;
   currentPage: number;
   totalPages: number;
+}
+
+export interface ImportCandidate {
+  file: File;
+  displayName: string;
 }

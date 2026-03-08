@@ -24,7 +24,12 @@ export class SearchService {
             .filter((value): value is NonNullable<typeof value> => Boolean(value))
         : this.index
             .listPages()
-            .filter((page) => page.normalizedText.includes(normalizedQuery) || page.fileName.toLowerCase().includes(normalizedQuery));
+            .filter(
+              (page) =>
+                page.normalizedText.includes(normalizedQuery) ||
+                page.fileName.toLowerCase().includes(normalizedQuery) ||
+                page.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery))
+            );
 
     return candidatePages
       .map((page) => ({
@@ -40,6 +45,10 @@ export class SearchService {
   }
 
   searchFromVoiceCommand(command: VoiceCommand): SearchResult[] {
+    if (command.intent === "open_file" && command.fileName) {
+      return this.searchText(command.fileName);
+    }
+
     if (command.intent === "find_sheet" && command.sheet) {
       return this.searchText(command.sheet);
     }

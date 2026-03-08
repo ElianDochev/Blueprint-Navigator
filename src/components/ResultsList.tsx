@@ -11,7 +11,7 @@ export function ResultsList({ results, onSelect }: ResultsListProps) {
       <h2 className="text-base font-semibold text-ink">Search Results</h2>
 
       {results.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-600">No matches yet. Import PDFs and type a query.</p>
+        <p className="mt-2 text-sm text-slate-600">No matches yet. Import PDF/PNG files and type a query.</p>
       ) : (
         <ul className="mt-3 space-y-2">
           {results.map((result, index) => (

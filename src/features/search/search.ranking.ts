@@ -9,6 +9,7 @@ export function rankPage(page: IndexedPage, query: string): number {
 
   const pageText = page.normalizedText;
   const fileName = page.fileName.toLowerCase();
+  const tags = page.tags.join(" ").toLowerCase();
 
   let score = 0;
   for (const token of tokens) {
@@ -18,6 +19,10 @@ export function rankPage(page: IndexedPage, query: string): number {
 
     if (fileName.includes(token)) {
       score += 1;
+    }
+
+    if (tags.includes(token)) {
+      score += 2;
     }
   }
 

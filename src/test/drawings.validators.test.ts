@@ -8,10 +8,16 @@ describe("drawing validators", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("accepts valid PNGs", () => {
+    const file = new File(["png-content"], "plan.png", { type: "image/png" });
+    const result = validateImportFile(file);
+    expect(result.ok).toBe(true);
+  });
+
   it("rejects non-pdf files", () => {
     const file = new File(["text"], "notes.txt", { type: "text/plain" });
     const result = validateImportFile(file);
     expect(result.ok).toBe(false);
-    expect(result.error).toContain("Only PDF");
+    expect(result.error).toContain("Only PDF and PNG");
   });
 });

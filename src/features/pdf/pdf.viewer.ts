@@ -6,6 +6,34 @@ export interface RenderResult {
   totalPages: number;
 }
 
+export async function renderImagePage(blob: Blob, zoom: number, canvas: HTMLCanvasElement): Promise<RenderResult> {
+  const url = URL.createObjectURL(blob);
+  const image = new Image();
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to render image file."));
+    };
+    image.src = url;
+  });
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    URL.revokeObjectURL(url);
+    throw new Error("Canvas 2D context is unavailable.");
+  }
+
+  canvas.width = Math.floor(image.width * zoom);
+  canvas.height = Math.floor(image.height * zoom);
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  URL.revokeObjectURL(url);
+  return { totalPages: 1 };
+}
+
 export async function renderPdfPage(
   blob: Blob,
   pageNumber: number,

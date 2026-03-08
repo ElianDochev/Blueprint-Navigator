@@ -6,6 +6,7 @@ export interface IndexedPage {
   id: string;
   fileId: string;
   fileName: string;
+  tags: string[];
   pageNumber: number;
   text: string;
   normalizedText: string;
@@ -13,52 +14,77 @@ export interface IndexedPage {
 
 export class SearchIndex {
   private readonly index = new FlexSearch.Index({
-    tokenize: "forward",
-    encode: "icase"
+    tokenize: "forward"
   });
 
   private readonly pageMap = new Map<string, IndexedPage>();
+  private indexHealthy = true;
 
   clear() {
-    this.index.clear();
+    try {
+      this.index.clear();
+      this.indexHealthy = true;
+    } catch {
+      this.indexHealthy = false;
+    }
+
     this.pageMap.clear();
   }
 
   rebuild(drawings: DrawingFile[], pages: DrawingPage[]) {
     this.clear();
 
-    const fileNameById = new Map(drawings.map((drawing) => [drawing.id, drawing.fileName]));
+    const drawingById = new Map(drawings.map((drawing) => [drawing.id, drawing]));
     pages.forEach((page) => {
-      const fileName = fileNameById.get(page.fileId) ?? "Unknown file";
-      this.addPage(page, fileName);
+      const drawing = drawingById.get(page.fileId);
+      this.addPage(page, drawing?.fileName ?? "Unknown file", drawing?.tags ?? []);
     });
   }
 
-  addPage(page: DrawingPage, fileName: string) {
+  addPage(page: DrawingPage, fileName: string, tags: string[]) {
     const indexedPage: IndexedPage = {
       id: page.id,
       fileId: page.fileId,
       fileName,
+      tags,
       pageNumber: page.pageNumber,
       text: page.text,
       normalizedText: page.normalizedText
     };
 
     if (this.pageMap.has(page.id)) {
-      this.index.remove(page.id);
+      if (this.indexHealthy) {
+        try {
+          this.index.remove(page.id);
+        } catch {
+          this.indexHealthy = false;
+        }
+      }
     }
 
     this.pageMap.set(page.id, indexedPage);
-    this.index.add(page.id, `${normalizeText(fileName)} ${page.normalizedText}`);
+    if (this.indexHealthy) {
+      try {
+        const payload = `${normalizeText(fileName)} ${normalizeText(tags.join(" "))} ${page.normalizedText}`.trim();
+        this.index.add(page.id, payload || normalizeText(fileName));
+      } catch {
+        this.indexHealthy = false;
+      }
+    }
   }
 
   searchIds(query: string, limit = 20): string[] {
     const normalized = normalizeText(query);
-    if (!normalized) {
+    if (!normalized || !this.indexHealthy) {
       return [];
     }
 
-    return this.index.search(normalized, limit) as string[];
+    try {
+      return this.index.search(normalized, limit) as string[];
+    } catch {
+      this.indexHealthy = false;
+      return [];
+    }
   }
 
   getPage(id: string): IndexedPage | undefined {

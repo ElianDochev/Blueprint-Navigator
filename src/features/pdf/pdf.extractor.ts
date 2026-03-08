@@ -4,10 +4,10 @@ import { normalizeText } from "../../utils/text";
 
 GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
-export interface ExtractedPdf {
+export interface ExtractedDrawing {
   drawing: DrawingFile;
   pages: DrawingPage[];
-  pdfBlob: Blob;
+  fileBlob: Blob;
 }
 
 function createId(prefix: string): string {
@@ -23,7 +23,7 @@ export async function extractPdfText(
   file: File,
   projectName: string,
   onPage?: (currentPage: number, totalPages: number) => void
-): Promise<ExtractedPdf> {
+): Promise<ExtractedDrawing> {
   const bytes = await file.arrayBuffer();
   const fileHash = await hashBytes(bytes);
   const pdfTask = getDocument({ data: bytes });
@@ -58,6 +58,9 @@ export async function extractPdfText(
     fileHash,
     importedAt: new Date().toISOString(),
     pageCount: pdf.numPages,
+    sourceKind: "pdf",
+    mimeType: file.type || "application/pdf",
+    planType: "unknown",
     tags: []
   };
 
@@ -66,6 +69,43 @@ export async function extractPdfText(
   return {
     drawing,
     pages,
-    pdfBlob: new Blob([bytes], { type: "application/pdf" })
+    fileBlob: new Blob([bytes], { type: "application/pdf" })
+  };
+}
+
+export async function extractPngImage(
+  file: File,
+  projectName: string,
+  onPage?: (currentPage: number, totalPages: number) => void
+): Promise<ExtractedDrawing> {
+  const bytes = await file.arrayBuffer();
+  const fileHash = await hashBytes(bytes);
+  const fileId = createId("file");
+
+  const page: DrawingPage = {
+    id: createId("page"),
+    fileId,
+    pageNumber: 1,
+    text: "",
+    normalizedText: ""
+  };
+
+  onPage?.(1, 1);
+
+  return {
+    drawing: {
+      id: fileId,
+      projectName,
+      fileName: file.name,
+      fileHash,
+      importedAt: new Date().toISOString(),
+      pageCount: 1,
+      sourceKind: "image",
+      mimeType: file.type || "image/png",
+      planType: "unknown",
+      tags: []
+    },
+    pages: [page],
+    fileBlob: new Blob([bytes], { type: file.type || "image/png" })
   };
 }

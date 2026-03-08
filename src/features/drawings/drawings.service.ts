@@ -1,6 +1,7 @@
 import { validateImportFile } from "./drawings.validators";
-import type { ImportProgress } from "./drawings.types";
-import { extractPdfText } from "../pdf/pdf.extractor";
+import type { ImportCandidate, ImportProgress } from "./drawings.types";
+import { buildPlanTypeTags, inferPlanType } from "./plan-type";
+import { extractPdfText, extractPngImage } from "../pdf/pdf.extractor";
 import { saveDrawingWithPages } from "../storage/repositories";
 
 export interface ImportReport {
@@ -8,8 +9,12 @@ export interface ImportReport {
   skippedFiles: Array<{ fileName: string; reason: string }>;
 }
 
+function isPdfFile(file: File): boolean {
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+}
+
 export async function importDrawingFiles(
-  files: File[],
+  files: ImportCandidate[],
   projectName: string,
   onProgress?: (progress: ImportProgress) => void
 ): Promise<ImportReport> {
@@ -17,25 +22,42 @@ export async function importDrawingFiles(
   let importedFiles = 0;
 
   for (let index = 0; index < files.length; index += 1) {
-    const file = files[index];
+    const { file, displayName } = files[index];
+    const normalizedDisplayName = displayName.trim() || file.name;
     const validation = validateImportFile(file);
 
     if (!validation.ok) {
-      skippedFiles.push({ fileName: file.name, reason: validation.error ?? "Invalid file." });
+      skippedFiles.push({ fileName: normalizedDisplayName, reason: validation.error ?? "Invalid file." });
       continue;
     }
 
-    const extracted = await extractPdfText(file, projectName, (currentPage, totalPages) => {
-      onProgress?.({
-        fileName: file.name,
-        currentFileIndex: index + 1,
-        totalFiles: files.length,
-        currentPage,
-        totalPages
-      });
-    });
+    const extracted =
+      isPdfFile(file)
+        ? await extractPdfText(file, projectName, (currentPage, totalPages) => {
+            onProgress?.({
+              fileName: normalizedDisplayName,
+              currentFileIndex: index + 1,
+              totalFiles: files.length,
+              currentPage,
+              totalPages
+            });
+          })
+        : await extractPngImage(file, projectName, (currentPage, totalPages) => {
+            onProgress?.({
+              fileName: normalizedDisplayName,
+              currentFileIndex: index + 1,
+              totalFiles: files.length,
+              currentPage,
+              totalPages
+            });
+          });
 
-    await saveDrawingWithPages({ ...extracted.drawing, pdfBlob: extracted.pdfBlob }, extracted.pages);
+    extracted.drawing.fileName = normalizedDisplayName;
+    const planType = inferPlanType(normalizedDisplayName, extracted.pages.map((page) => page.text));
+    extracted.drawing.planType = planType;
+    extracted.drawing.tags = [...new Set([...(extracted.drawing.tags ?? []), ...buildPlanTypeTags(planType)])];
+
+    await saveDrawingWithPages({ ...extracted.drawing, fileBlob: extracted.fileBlob }, extracted.pages);
     importedFiles += 1;
   }
 
