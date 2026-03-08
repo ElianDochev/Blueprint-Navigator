@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { transcribeWithWhisper } from "./voice.transcribe";
 
 export interface VoiceAdapterState {
   supported: boolean;
@@ -9,27 +9,111 @@ export interface VoiceAdapterState {
   stop: () => Promise<void>;
 }
 
-export function useVoiceAdapter(onTranscript: (transcript: string) => void): VoiceAdapterState {
-  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
+function stopMediaStream(stream: MediaStream | null) {
+  if (!stream) {
+    return;
+  }
+
+  stream.getTracks().forEach((track) => track.stop());
+}
+
+export function useVoiceAdapter(
+  onTranscript: (transcript: string) => void,
+  onError?: (message: string) => void
+): VoiceAdapterState {
+  const [listening, setListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
+
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
+  const supported = useMemo(() => {
+    return typeof window !== "undefined" && !!window.navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined";
+  }, []);
 
   useEffect(() => {
-    if (!listening && transcript.trim()) {
-      onTranscript(transcript.trim());
-      resetTranscript();
-    }
-  }, [listening, transcript, onTranscript, resetTranscript]);
+    return () => {
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        recorderRef.current.stop();
+      }
+      stopMediaStream(streamRef.current);
+      streamRef.current = null;
+      recorderRef.current = null;
+      chunksRef.current = [];
+    };
+  }, []);
 
   async function start() {
-    resetTranscript();
-    await SpeechRecognition.startListening({ language: "en-US", continuous: false });
+    if (!supported) {
+      throw new Error("Voice recording is unavailable in this browser.");
+    }
+
+    if (listening) {
+      return;
+    }
+
+    const stream = await window.navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+
+    chunksRef.current = [];
+    streamRef.current = stream;
+    recorderRef.current = recorder;
+    setTranscript("");
+
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        chunksRef.current.push(event.data);
+      }
+    };
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+      chunksRef.current = [];
+      stopMediaStream(streamRef.current);
+      streamRef.current = null;
+
+      if (blob.size === 0) {
+        return;
+      }
+
+      void (async () => {
+        try {
+          const nextTranscript = (await transcribeWithWhisper(blob)).trim();
+          setTranscript(nextTranscript);
+          if (nextTranscript) {
+            onTranscript(nextTranscript);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unable to transcribe voice input.";
+          onError?.(message);
+        }
+      })();
+    };
+
+    recorder.onerror = () => {
+      onError?.("Voice recording failed.");
+    };
+
+    recorder.start();
+    setListening(true);
   }
 
   async function stop() {
-    await SpeechRecognition.stopListening();
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state === "inactive") {
+      setListening(false);
+      stopMediaStream(streamRef.current);
+      streamRef.current = null;
+      return;
+    }
+
+    recorder.stop();
+    setListening(false);
   }
 
   return {
-    supported: browserSupportsSpeechRecognition,
+    supported,
     listening,
     transcript,
     start,

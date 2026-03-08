@@ -193,7 +193,10 @@ export function App() {
         void runSmartSearch(transcript, true);
       },
       [runSmartSearch]
-    )
+    ),
+    useCallback((message: string) => {
+      setStatus({ tone: "error", message });
+    }, [])
   );
 
   async function handleCreateProject(name: string) {
@@ -271,12 +274,19 @@ export function App() {
   }
 
   async function handleVoiceToggle() {
-    if (voice.listening) {
-      await voice.stop();
-      return;
-    }
+    try {
+      if (voice.listening) {
+        await voice.stop();
+        return;
+      }
 
-    await voice.start();
+      await voice.start();
+    } catch (error) {
+      setStatus({
+        tone: "error",
+        message: error instanceof Error ? error.message : "Voice input failed."
+      });
+    }
   }
 
   return (
