@@ -11,7 +11,7 @@ export function ResultsList({ results, onSelect }: ResultsListProps) {
       <h2 className="text-base font-semibold text-ink">Search Results</h2>
 
       {results.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-600">No matches yet. Import PDF/PNG files and type a query.</p>
+        <p className="mt-2 text-sm text-slate-600">No matches yet. Search from the dashboard across your projects.</p>
       ) : (
         <ul className="mt-3 space-y-2">
           {results.map((result, index) => (
@@ -22,7 +22,10 @@ export function ResultsList({ results, onSelect }: ResultsListProps) {
                 onClick={() => onSelect(result)}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <strong className="text-sm text-ink">{result.fileName}</strong>
+                  <div>
+                    <strong className="text-sm text-ink">{result.fileName}</strong>
+                    <p className="text-[11px] text-slate-500">{result.projectName}</p>
+                  </div>
                   <span className="text-xs text-slate-600">Page {result.pageNumber}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-600">Score: {result.score.toFixed(2)}</p>

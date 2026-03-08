@@ -13,6 +13,7 @@ export type PlanType =
 
 export interface DrawingFile {
   id: string;
+  projectId: string;
   projectName: string;
   fileName: string;
   fileHash: string;
@@ -37,6 +38,8 @@ export interface DrawingPage {
 }
 
 export interface SearchResult {
+  projectId: string;
+  projectName: string;
   fileId: string;
   fileName: string;
   pageNumber: number;
@@ -65,4 +68,10 @@ export interface ImportProgress {
 export interface ImportCandidate {
   file: File;
   displayName: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  createdAt: string;
 }

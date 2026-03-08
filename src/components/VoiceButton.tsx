@@ -17,7 +17,7 @@ export function VoiceButton({ supported, listening, disabled, onToggle }: VoiceB
   return (
     <section className="rounded-2xl bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-700">Use voice commands for quick page opening.</p>
+        <p className="text-sm text-brand-900">Use voice commands for cross-project plan lookup.</p>
         <button
           type="button"
           onClick={() => {
@@ -25,7 +25,7 @@ export function VoiceButton({ supported, listening, disabled, onToggle }: VoiceB
           }}
           disabled={disabled}
           className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-            listening ? "bg-rose-600 hover:bg-rose-700" : "bg-accent hover:brightness-95"
+            listening ? "bg-brand-900 hover:bg-brand-950" : "bg-accent hover:brightness-95"
           } disabled:cursor-not-allowed disabled:opacity-60`}
         >
           {listening ? "Stop Listening" : "Start Voice"}

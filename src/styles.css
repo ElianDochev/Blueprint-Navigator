@@ -1,16 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
-  color: #10212f;
-  background: radial-gradient(circle at top left, #d8e6f2 0%, #f6f9fc 42%, #eef2f5 100%);
+  --c-foam: #78b9b5;
+  --c-teal: #0f828c;
+  --c-deep-blue: #065084;
+  --c-violet: #320a6b;
+
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+  color: #0a2147;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(120, 185, 181, 0.45), transparent 36%),
+    radial-gradient(circle at 90% 0%, rgba(15, 130, 140, 0.28), transparent 42%),
+    linear-gradient(155deg, #f2fbff 0%, #dff2f7 38%, #dbe4ff 68%, #cdd7ff 100%);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(120, 185, 181, 0.45), transparent 36%),
+    radial-gradient(circle at 90% 0%, rgba(15, 130, 140, 0.28), transparent 42%),
+    linear-gradient(155deg, #f2fbff 0%, #dff2f7 38%, #dbe4ff 68%, #cdd7ff 100%);
 }
 
 #root {

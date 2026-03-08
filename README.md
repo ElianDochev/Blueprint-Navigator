@@ -1,6 +1,6 @@
 # Blueprint Navigator
 
-Blueprint Navigator is a frontend-only proof-of-concept that imports construction drawing PDF/PNG files, extracts page text when available, assigns a plan type, builds a local search index, and opens the best matching page from typed or voice commands.
+Blueprint Navigator is a frontend-only proof-of-concept with a project dashboard that lets teams create projects, upload plan PNG/PDF files per project, and run typed/voice plan search across all projects.
 
 ## MVP Constraints
 - No backend service
@@ -23,6 +23,13 @@ Note: container startup runs `bun install` inside the app container volume.
 bun install
 bun run dev
 ```
+
+## OpenAI Query Parsing
+To enable LLM-assisted query parsing (for text and voice search), set:
+- `VITE_OPENAI_API_KEY`
+- `VITE_OPENAI_MODEL` (default: `gpt-4o-mini`)
+
+See `.env.example` for the full list.
 
 ## Scripts
 - `bun run dev`

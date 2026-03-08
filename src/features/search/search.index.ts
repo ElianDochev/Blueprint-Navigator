@@ -5,6 +5,8 @@ import { normalizeText } from "../../utils/text";
 export interface IndexedPage {
   id: string;
   fileId: string;
+  projectId: string;
+  projectName: string;
   fileName: string;
   tags: string[];
   pageNumber: number;
@@ -37,14 +39,22 @@ export class SearchIndex {
     const drawingById = new Map(drawings.map((drawing) => [drawing.id, drawing]));
     pages.forEach((page) => {
       const drawing = drawingById.get(page.fileId);
-      this.addPage(page, drawing?.fileName ?? "Unknown file", drawing?.tags ?? []);
+      this.addPage(
+        page,
+        drawing?.projectId ?? "unknown-project",
+        drawing?.projectName ?? "Unknown project",
+        drawing?.fileName ?? "Unknown file",
+        drawing?.tags ?? []
+      );
     });
   }
 
-  addPage(page: DrawingPage, fileName: string, tags: string[]) {
+  addPage(page: DrawingPage, projectId: string, projectName: string, fileName: string, tags: string[]) {
     const indexedPage: IndexedPage = {
       id: page.id,
       fileId: page.fileId,
+      projectId,
+      projectName,
       fileName,
       tags,
       pageNumber: page.pageNumber,
@@ -65,8 +75,8 @@ export class SearchIndex {
     this.pageMap.set(page.id, indexedPage);
     if (this.indexHealthy) {
       try {
-        const payload = `${normalizeText(fileName)} ${normalizeText(tags.join(" "))} ${page.normalizedText}`.trim();
-        this.index.add(page.id, payload || normalizeText(fileName));
+        const payload = `${normalizeText(projectName)} ${normalizeText(fileName)} ${normalizeText(tags.join(" "))} ${page.normalizedText}`.trim();
+        this.index.add(page.id, payload || `${normalizeText(projectName)} ${normalizeText(fileName)}`);
       } catch {
         this.indexHealthy = false;
       }

@@ -1,5 +1,5 @@
 import { validateImportFile } from "./drawings.validators";
-import type { ImportCandidate, ImportProgress } from "./drawings.types";
+import type { ImportCandidate, ImportProgress, Project } from "./drawings.types";
 import { buildPlanTypeTags, inferPlanType } from "./plan-type";
 import { extractPdfText, extractPngImage } from "../pdf/pdf.extractor";
 import { saveDrawingWithPages } from "../storage/repositories";
@@ -15,7 +15,7 @@ function isPdfFile(file: File): boolean {
 
 export async function importDrawingFiles(
   files: ImportCandidate[],
-  projectName: string,
+  project: Project,
   onProgress?: (progress: ImportProgress) => void
 ): Promise<ImportReport> {
   const skippedFiles: Array<{ fileName: string; reason: string }> = [];
@@ -33,7 +33,7 @@ export async function importDrawingFiles(
 
     const extracted =
       isPdfFile(file)
-        ? await extractPdfText(file, projectName, (currentPage, totalPages) => {
+        ? await extractPdfText(file, project.id, project.name, (currentPage, totalPages) => {
             onProgress?.({
               fileName: normalizedDisplayName,
               currentFileIndex: index + 1,
@@ -42,7 +42,7 @@ export async function importDrawingFiles(
               totalPages
             });
           })
-        : await extractPngImage(file, projectName, (currentPage, totalPages) => {
+        : await extractPngImage(file, project.id, project.name, (currentPage, totalPages) => {
             onProgress?.({
               fileName: normalizedDisplayName,
               currentFileIndex: index + 1,

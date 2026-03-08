@@ -5,6 +5,8 @@ import { ResultsList } from "../components/ResultsList";
 describe("ResultsList", () => {
   it("renders results and handles click", () => {
     const result = {
+      projectId: "project-1",
+      projectName: "Tower A",
       fileId: "file-1",
       fileName: "B1-Electrical.pdf",
       pageNumber: 4,

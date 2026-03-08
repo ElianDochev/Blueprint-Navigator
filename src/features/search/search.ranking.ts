@@ -8,6 +8,7 @@ export function rankPage(page: IndexedPage, query: string): number {
   }
 
   const pageText = page.normalizedText;
+  const projectName = page.projectName.toLowerCase();
   const fileName = page.fileName.toLowerCase();
   const tags = page.tags.join(" ").toLowerCase();
 
@@ -18,6 +19,10 @@ export function rankPage(page: IndexedPage, query: string): number {
     }
 
     if (fileName.includes(token)) {
+      score += 1;
+    }
+
+    if (projectName.includes(token)) {
       score += 1;
     }
 

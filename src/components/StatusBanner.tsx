@@ -6,10 +6,10 @@ interface StatusBannerProps {
 export function StatusBanner({ tone, message }: StatusBannerProps) {
   const toneClass =
     tone === "success"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      ? "border-brand-300 bg-brand-50 text-brand-800"
       : tone === "error"
-        ? "border-rose-200 bg-rose-50 text-rose-800"
-        : "border-sky-200 bg-sky-50 text-sky-800";
+        ? "border-violet-300 bg-violet-50 text-violet-800"
+        : "border-brand-300 bg-brand-100/70 text-brand-900";
 
   return <div className={`rounded-xl border p-3 text-sm ${toneClass}`}>{message}</div>;
 }

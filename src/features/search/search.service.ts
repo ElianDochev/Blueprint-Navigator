@@ -27,12 +27,15 @@ export class SearchService {
             .filter(
               (page) =>
                 page.normalizedText.includes(normalizedQuery) ||
+                page.projectName.toLowerCase().includes(normalizedQuery) ||
                 page.fileName.toLowerCase().includes(normalizedQuery) ||
                 page.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery))
             );
 
     return candidatePages
       .map((page) => ({
+        projectId: page.projectId,
+        projectName: page.projectName,
         fileId: page.fileId,
         fileName: page.fileName,
         pageNumber: page.pageNumber,

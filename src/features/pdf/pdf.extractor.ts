@@ -21,6 +21,7 @@ async function hashBytes(content: ArrayBuffer): Promise<string> {
 
 export async function extractPdfText(
   file: File,
+  projectId: string,
   projectName: string,
   onPage?: (currentPage: number, totalPages: number) => void
 ): Promise<ExtractedDrawing> {
@@ -53,6 +54,7 @@ export async function extractPdfText(
 
   const drawing: DrawingFile = {
     id: fileId,
+    projectId,
     projectName,
     fileName: file.name,
     fileHash,
@@ -75,6 +77,7 @@ export async function extractPdfText(
 
 export async function extractPngImage(
   file: File,
+  projectId: string,
   projectName: string,
   onPage?: (currentPage: number, totalPages: number) => void
 ): Promise<ExtractedDrawing> {
@@ -95,6 +98,7 @@ export async function extractPngImage(
   return {
     drawing: {
       id: fileId,
+      projectId,
       projectName,
       fileName: file.name,
       fileHash,

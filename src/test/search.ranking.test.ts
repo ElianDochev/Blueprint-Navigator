@@ -5,6 +5,8 @@ describe("search ranking", () => {
   const candidate = {
     id: "page_1",
     fileId: "file_1",
+    projectId: "project_1",
+    projectName: "Tower B",
     fileName: "BuildingB-Electrical.pdf",
     tags: ["plan", "electrical"],
     pageNumber: 2,

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { DrawingPage, StoredDrawingFile } from "../drawings/drawings.types";
+import type { DrawingPage, Project, StoredDrawingFile } from "../drawings/drawings.types";
 
 const RECENT_QUERIES_KEY = "recentQueries";
 
@@ -17,6 +17,11 @@ export async function listDrawings(): Promise<StoredDrawingFile[]> {
   return db.drawings.orderBy("importedAt").reverse().toArray();
 }
 
+export async function listDrawingsByProject(projectId: string): Promise<StoredDrawingFile[]> {
+  const drawings = await db.drawings.where("projectId").equals(projectId).toArray();
+  return drawings.sort((a, b) => b.importedAt.localeCompare(a.importedAt));
+}
+
 export async function listPages(): Promise<DrawingPage[]> {
   return db.pages.toArray();
 }
@@ -27,6 +32,25 @@ export async function listPagesByFileId(fileId: string): Promise<DrawingPage[]> 
 
 export async function getDrawingById(id: string): Promise<StoredDrawingFile | undefined> {
   return db.drawings.get(id);
+}
+
+export async function createProject(name: string): Promise<Project> {
+  const project: Project = {
+    id: `project_${crypto.randomUUID()}`,
+    name: name.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  await db.projects.put(project);
+  return project;
+}
+
+export async function listProjects(): Promise<Project[]> {
+  return db.projects.orderBy("createdAt").reverse().toArray();
+}
+
+export async function getProjectById(id: string): Promise<Project | undefined> {
+  return db.projects.get(id);
 }
 
 export async function saveRecentQuery(query: string): Promise<void> {

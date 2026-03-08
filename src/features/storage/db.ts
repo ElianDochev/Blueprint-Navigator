@@ -1,5 +1,5 @@
 import Dexie, { type Table } from "dexie";
-import type { DrawingPage, StoredDrawingFile } from "../drawings/drawings.types";
+import type { DrawingPage, Project, StoredDrawingFile } from "../drawings/drawings.types";
 
 export interface AppPreference {
   key: string;
@@ -7,6 +7,7 @@ export interface AppPreference {
 }
 
 class BlueprintDatabase extends Dexie {
+  projects!: Table<Project, string>;
   drawings!: Table<StoredDrawingFile, string>;
   pages!: Table<DrawingPage, string>;
   preferences!: Table<AppPreference, string>;
@@ -56,6 +57,47 @@ class BlueprintDatabase extends Dexie {
             delete drawing.pdfBlob;
           })
       );
+
+    this.version(3)
+      .stores({
+        projects: "id, name, createdAt",
+        drawings: "id, projectId, projectName, fileHash, importedAt, fileName, planType, sourceKind, mimeType",
+        pages: "id, fileId, pageNumber",
+        preferences: "key"
+      })
+      .upgrade(async (transaction) => {
+        const drawingsTable = transaction.table("drawings");
+        const projectsTable = transaction.table("projects");
+
+        const drawings = (await drawingsTable.toArray()) as Array<Record<string, unknown>>;
+        const projectIdByName = new Map<string, string>();
+        const projectRows: Project[] = [];
+
+        for (const drawing of drawings) {
+          const rawProjectName =
+            typeof drawing.projectName === "string" && drawing.projectName.trim() ? drawing.projectName.trim() : "Untitled Project";
+
+          let projectId = projectIdByName.get(rawProjectName);
+          if (!projectId) {
+            projectId = `project_${crypto.randomUUID()}`;
+            projectIdByName.set(rawProjectName, projectId);
+            projectRows.push({
+              id: projectId,
+              name: rawProjectName,
+              createdAt: typeof drawing.importedAt === "string" ? drawing.importedAt : new Date().toISOString()
+            });
+          }
+
+          drawing.projectId = projectId;
+          drawing.projectName = rawProjectName;
+        }
+
+        if (projectRows.length > 0) {
+          await projectsTable.bulkPut(projectRows);
+        }
+
+        await drawingsTable.bulkPut(drawings as StoredDrawingFile[]);
+      });
   }
 }
 

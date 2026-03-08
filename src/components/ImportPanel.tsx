@@ -4,11 +4,12 @@ import type { ImportCandidate, ImportProgress } from "../features/drawings/drawi
 interface ImportPanelProps {
   importing: boolean;
   progress: ImportProgress | null;
+  projectName?: string;
   onImport: (files: ImportCandidate[], projectName: string) => Promise<void>;
 }
 
-export function ImportPanel({ importing, progress, onImport }: ImportPanelProps) {
-  const [projectName, setProjectName] = useState("");
+export function ImportPanel({ importing, progress, projectName, onImport }: ImportPanelProps) {
+  const [projectNameInput, setProjectNameInput] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
   async function handleFileInput(event: ChangeEvent<HTMLInputElement>) {
@@ -18,7 +19,8 @@ export function ImportPanel({ importing, progress, onImport }: ImportPanelProps)
       return;
     }
 
-    if (!projectName.trim()) {
+    const resolvedProjectName = projectName ?? projectNameInput;
+    if (!resolvedProjectName.trim()) {
       setLocalError("Project name is required before importing.");
       return;
     }
@@ -34,7 +36,7 @@ export function ImportPanel({ importing, progress, onImport }: ImportPanelProps)
       };
     });
 
-    await onImport(files, projectName.trim());
+    await onImport(files, resolvedProjectName.trim());
 
     event.target.value = "";
   }
@@ -45,17 +47,23 @@ export function ImportPanel({ importing, progress, onImport }: ImportPanelProps)
       <p className="mt-1 text-sm text-slate-600">Upload PDF/PNG files. You can rename each file before import.</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-        <label className="flex flex-col gap-1 text-sm text-slate-700">
-          Project name
-          <input
-            type="text"
-            value={projectName}
-            onChange={(event) => setProjectName(event.target.value)}
-            placeholder="Building A Renovation"
-            className="rounded-lg border border-slate-300 px-3 py-2"
-            disabled={importing}
-          />
-        </label>
+        {projectName ? (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            Uploading to: <strong>{projectName}</strong>
+          </div>
+        ) : (
+          <label className="flex flex-col gap-1 text-sm text-slate-700">
+            Project name
+            <input
+              type="text"
+              value={projectNameInput}
+              onChange={(event) => setProjectNameInput(event.target.value)}
+              placeholder="Building A Renovation"
+              className="rounded-lg border border-slate-300 px-3 py-2"
+              disabled={importing}
+            />
+          </label>
+        )}
 
         <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60">
           <input

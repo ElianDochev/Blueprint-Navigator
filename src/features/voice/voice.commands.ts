@@ -1,6 +1,6 @@
 export const supportedVoiceExamples = [
-  "give me plan for file lobby-level",
-  "open plan for Building X",
-  "show electrical plan for Building B",
-  "find sheet A-102"
+  "give me plans for balcony",
+  "give me plans for project tower-a balcony",
+  "give me plans for file lobby-level",
+  "open plan for project tower-b roof"
 ] as const;
